@@ -4,4 +4,4 @@ domain: contoso.local
 size: small
 version: "1.4.2"
 ring: "2"
-ready: "false"
+ready: "true"
