@@ -2,6 +2,6 @@
 name: acme
 domain: acme.local
 size: small         # sets quota, autoscaler max
-version: "1.5.0"    # app version this customer runs
+version: "1.4.2"    # app version this customer runs
 ring: "1"           # 0 internal, 1 early customers, 2 everyone
 ready: "true"       # in the real design the pipeline sets this after Terraform succeeds
