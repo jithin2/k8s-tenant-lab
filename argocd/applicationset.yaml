@@ -1,0 +1,51 @@
+# One ArgoCD Application per tenant file, but only where ready is "true".
+# Replace REPO_URL (2 places) with your GitHub repo URL before applying.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenants
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/jithin2/k8s-tenant-lab.git
+      revision: HEAD
+      files:
+      - path: "tenants/*.yaml"
+    selector:
+      matchLabels:
+        ready: "true"
+  template:
+    metadata:
+      name: "tenant-{{name}}"
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/jithin2/k8s-tenant-lab.git
+        targetRevision: HEAD
+        path: chart/tenant-app
+        helm:
+          parameters:
+          - name: tenant.name
+            value: "{{name}}"
+          - name: tenant.domain
+            value: "{{domain}}"
+          - name: version
+            value: "{{version}}"
+          - name: size
+            value: "{{size}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "tenant-{{name}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        managedNamespaceMetadata:
+          labels:
+            tenant: "true"
+            tenant-name: "{{name}}"

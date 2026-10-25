@@ -1,0 +1,21 @@
+# Set per tenant by the ApplicationSet from tenants/<name>.yaml
+tenant:
+  name: demo
+  domain: demo.local
+version: "1.0.0"
+size: small
+
+# What each size means
+sizes:
+  small:
+    backendMax: 3
+    cpuQuota: "2"
+    memoryQuota: 2Gi
+  medium:
+    backendMax: 6
+    cpuQuota: "4"
+    memoryQuota: 4Gi
+
+# LAB ONLY. In the real design this comes from Key Vault via External Secrets.
+db:
+  password: lab-only-password

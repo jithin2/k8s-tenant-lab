@@ -1,0 +1,11 @@
+{{- $s := index .Values.sizes .Values.size }}
+# Quota size comes from the tenant file (size). Kyverno owns the LimitRange.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-quota
+spec:
+  hard:
+    requests.cpu: {{ $s.cpuQuota | quote }}
+    requests.memory: {{ $s.memoryQuota | quote }}
+    pods: "20"

@@ -1,0 +1,6 @@
+name: bolt
+domain: bolt.local
+size: medium
+version: "1.4.2"
+ring: "2"
+ready: "true"

@@ -1,0 +1,24 @@
+# VALIDATE: in tenant namespaces only, reject pods that may run as root.
+# Change Enforce to Audit to only report instead of blocking.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: tenant-no-root
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: must-run-as-non-root
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+          namespaceSelector:
+            matchLabels:
+              tenant: "true"
+    validate:
+      message: "Pods in tenant namespaces must not run as root. Set spec.securityContext.runAsNonRoot: true"
+      pattern:
+        spec:
+          securityContext:
+            runAsNonRoot: true

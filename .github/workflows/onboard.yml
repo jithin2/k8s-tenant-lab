@@ -1,0 +1,40 @@
+# SIMULATION of the onboarding pipeline from the design.
+# In the real design this job logs in to Azure with OIDC, runs Terraform for
+# each new tenant with its own state file, and then opens a pull request that
+# sets ready: "true". Here it only shows which tenants it would onboard.
+name: onboard
+
+on:
+  push:
+    branches: [main]
+    paths: ["tenants/**"]
+  workflow_dispatch:
+
+jobs:
+  onboard:
+    name: Onboard tenants that are not ready
+    runs-on: ubuntu-latest
+    # environment: production   # real design: needs approval, and the Azure trust is bound to it
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml==6.0.2
+      - name: Find tenants waiting for Terraform
+        run: |
+          python - <<'PY'
+          import yaml, pathlib
+          waiting = []
+          for f in sorted(pathlib.Path("tenants").glob("*.yaml")):
+              t = yaml.safe_load(f.read_text())
+              if t.get("ready") != "true":
+                  waiting.append(t["name"])
+          if not waiting:
+              print("Nothing to onboard. Every tenant is ready.")
+          for name in waiting:
+              print(f"[simulated] azure/login with OIDC (no stored secret)")
+              print(f"[simulated] terraform init -backend-config=key=tenants/{name}.tfstate")
+              print(f"[simulated] terraform apply -var=tenant_file=tenants/{name}.yaml")
+              print(f"[simulated] open pull request: tenants/{name}.yaml ready: \"true\"")
+          PY

@@ -1,0 +1,21 @@
+# A test pod that pretends to be acme's backend (label app: backend).
+# Used to prove acme can reach its own database but not bolt's.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nettest
+  namespace: tenant-acme
+  labels:
+    app: backend
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+  containers:
+  - name: test
+    image: postgres:16
+    command: ["sleep", "3600"]
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi

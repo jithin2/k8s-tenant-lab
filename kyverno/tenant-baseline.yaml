@@ -1,0 +1,51 @@
+# GENERATE: every namespace labelled tenant=true gets a default-deny
+# NetworkPolicy and a default LimitRange. Kyverno owns these two objects.
+# The allow rules and the quota come from the tenant's own Helm chart.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: tenant-baseline
+spec:
+  rules:
+  - name: default-deny-network
+    match:
+      any:
+      - resources:
+          kinds: ["Namespace"]
+          selector:
+            matchLabels:
+              tenant: "true"
+    generate:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      name: default-deny
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      data:
+        spec:
+          podSelector: {}
+          policyTypes: ["Ingress", "Egress"]
+  - name: default-limits
+    match:
+      any:
+      - resources:
+          kinds: ["Namespace"]
+          selector:
+            matchLabels:
+              tenant: "true"
+    generate:
+      apiVersion: v1
+      kind: LimitRange
+      name: default-limits
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      data:
+        spec:
+          limits:
+          - type: Container
+            default:
+              cpu: 500m
+              memory: 256Mi
+            defaultRequest:
+              cpu: 50m
+              memory: 64Mi

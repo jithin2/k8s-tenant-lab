@@ -1,0 +1,43 @@
+# Runs before the backend (wave 1, backend is wave 2).
+# It waits for the database, then applies an "expand" style change that
+# is safe for both the old and the new app version.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+      - name: migrate
+        image: postgres:16
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h postgres -U postgres; do echo "waiting for database"; sleep 2; done
+          psql -h postgres -U postgres -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS customers (id serial PRIMARY KEY, name text);"
+          psql -h postgres -U postgres -v ON_ERROR_STOP=1 -c "ALTER TABLE customers ADD COLUMN IF NOT EXISTS full_name text;"
+          echo "migration done for version {{ .Values.version }}"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi

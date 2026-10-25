@@ -1,0 +1,9 @@
+# This pod does not set runAsNonRoot, so Kyverno should reject it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: root-test
+spec:
+  containers:
+  - name: web
+    image: nginx

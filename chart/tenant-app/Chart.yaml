@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tenant-app
+description: One customer's copy of the app (lab version)
+type: application
+version: 0.1.0

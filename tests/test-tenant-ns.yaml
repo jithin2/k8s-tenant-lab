@@ -1,0 +1,7 @@
+# A tenant namespace created by hand, to test Kyverno before ArgoCD exists.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-tenant
+  labels:
+    tenant: "true"
